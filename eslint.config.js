@@ -3,7 +3,14 @@ import tseslint from "typescript-eslint";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", ".superpowers/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      ".cache/**",
+      ".superpowers/**",
+      "playwright-report/**",
+      "test-results/**",
+    ],
   },
   {
     files: ["scripts/**/*.mjs"],
