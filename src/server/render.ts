@@ -1,8 +1,40 @@
+import type { Page } from "playwright";
+
+import { buildConversationHtml, type ConversationTurn } from "./template.js";
+
 /**
- * Captures a full-page PNG screenshot of a validated ChatGPT share page.
+ * Extracts ChatGPT turns from a loaded share page.
  *
- * The URL must already pass strict validation before reaching this function.
- * Returns a PNG byte buffer.
+ * Relies on the `data-message-author-role` attribute ChatGPT puts on each
+ * message wrapper, and the `markdown` content container within it. If the page
+ * structure changes this throws `conversation_not_found` so we can detect it.
+ */
+async function extractConversation(page: Page): Promise<ConversationTurn[]> {
+  const result = await page.evaluate(() => {
+    const messageEls = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-message-author-role]"),
+    );
+    const turns = messageEls.map((element) => {
+      const role = element.getAttribute("data-message-author-role") ?? "unknown";
+      const content =
+        element.querySelector<HTMLElement>('[class*="markdown" i]') ??
+        element.querySelector<HTMLElement>("article") ??
+        element;
+      return { role, html: content.innerHTML };
+    });
+    return { turns, found: messageEls.length };
+  });
+
+  if (!result.found) {
+    throw new Error("conversation_not_found");
+  }
+
+  return result.turns;
+}
+
+/**
+ * Opens a validated ChatGPT share page, extracts the conversation, renders it
+ * in our own template, and returns a full-page PNG.
  */
 export async function captureScreenshot(canonicalUrl: string): Promise<Uint8Array> {
   const { chromium } = await import("playwright");
@@ -10,16 +42,23 @@ export async function captureScreenshot(canonicalUrl: string): Promise<Uint8Arra
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({
-      viewport: { width: 393, height: 852 },
+      viewport: { width: 760, height: 1200 },
       deviceScaleFactor: 2,
     });
-    const page = await context.newPage();
 
-    await page.goto(canonicalUrl, { waitUntil: "networkidle", timeout: 30_000 });
-    // Brief settle so lazy-loaded messages and dynamic height stabilize.
-    await page.waitForTimeout(800);
+    const sourcePage = await context.newPage();
+    await sourcePage.goto(canonicalUrl, { waitUntil: "networkidle", timeout: 30_000 });
+    await sourcePage.waitForTimeout(800);
+    const turns = await extractConversation(sourcePage);
 
-    const png = await page.screenshot({ fullPage: true, type: "png" });
+    const renderPage = await context.newPage();
+    await renderPage.setContent(buildConversationHtml(turns), {
+      waitUntil: "networkidle",
+      timeout: 30_000,
+    });
+    await renderPage.waitForTimeout(300);
+
+    const png = await renderPage.screenshot({ fullPage: true, type: "png" });
     return new Uint8Array(png);
   } finally {
     await browser.close();
