@@ -3,10 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="referrer"
+      content="no-referrer"
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'"
+    />
     <title>聊天长截图</title>
   </head>
   <body>
-    <div id="app"></div>
+    <main id="app">
+      <h1>聊天长截图</h1>
+      <p class="hint">粘贴 ChatGPT 公开分享链接，生成保留原站长截图。</p>
+
+      <form id="render-form">
+        <label class="field">
+          <span class="label">分享链接</span>
+          <input
+            id="share-url"
+            name="url"
+            type="url"
+            inputmode="url"
+            autocomplete="off"
+            placeholder="https://chatgpt.com/s/t_..."
+            required
+          />
+        </label>
+        <button id="submit" type="submit">生成长图</button>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <section id="result" class="result" hidden>
+        <img id="preview" alt="生成的长截图预览" />
+        <a id="download" class="download" download="chatgpt-screenshot.png">保存图片</a>
+      </section>
+    </main>
     <script type="module" src="/main.ts"></script>
   </body>
 </html>
