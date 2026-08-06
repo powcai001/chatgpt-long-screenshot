@@ -1,4 +1,4 @@
-import type { Page } from "playwright";
+import type { BrowserContext, Page } from "playwright";
 
 import { buildConversationHtml, type ConversationTurn } from "./template.js";
 
@@ -9,7 +9,7 @@ import { buildConversationHtml, type ConversationTurn } from "./template.js";
  * message wrapper, and the `markdown` content container within it. If the page
  * structure changes this throws `conversation_not_found` so we can detect it.
  */
-async function extractConversation(page: Page): Promise<ConversationTurn[]> {
+export async function extractConversation(page: Page): Promise<ConversationTurn[]> {
   const result = await page.evaluate(() => {
     const messageEls = Array.from(
       document.querySelectorAll<HTMLElement>("[data-message-author-role]"),
@@ -33,6 +33,28 @@ async function extractConversation(page: Page): Promise<ConversationTurn[]> {
 }
 
 /**
+ * Renders extracted turns into our template and returns a full-page PNG.
+ * Uses a fresh page in the given context so conversation images keep cookies.
+ */
+export async function renderConversationToPng(
+  context: BrowserContext,
+  turns: readonly ConversationTurn[],
+): Promise<Uint8Array> {
+  const page = await context.newPage();
+  try {
+    await page.setContent(buildConversationHtml(turns), {
+      waitUntil: "networkidle",
+      timeout: 30_000,
+    });
+    await page.waitForTimeout(300);
+    const png = await page.screenshot({ fullPage: true, type: "png" });
+    return new Uint8Array(png);
+  } finally {
+    await page.close();
+  }
+}
+
+/**
  * Opens a validated ChatGPT share page, extracts the conversation, renders it
  * in our own template, and returns a full-page PNG.
  */
@@ -50,16 +72,7 @@ export async function captureScreenshot(canonicalUrl: string): Promise<Uint8Arra
     await sourcePage.goto(canonicalUrl, { waitUntil: "networkidle", timeout: 30_000 });
     await sourcePage.waitForTimeout(800);
     const turns = await extractConversation(sourcePage);
-
-    const renderPage = await context.newPage();
-    await renderPage.setContent(buildConversationHtml(turns), {
-      waitUntil: "networkidle",
-      timeout: 30_000,
-    });
-    await renderPage.waitForTimeout(300);
-
-    const png = await renderPage.screenshot({ fullPage: true, type: "png" });
-    return new Uint8Array(png);
+    return await renderConversationToPng(context, turns);
   } finally {
     await browser.close();
   }
