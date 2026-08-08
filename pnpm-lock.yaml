@@ -9,16 +9,16 @@ importers:
   .:
     dependencies:
       '@mozilla/readability':
-        specifier: ^0.6.0
+        specifier: 0.6.0
         version: 0.6.0
       express:
         specifier: 5.2.1
         version: 5.2.1
       jsdom:
-        specifier: ^30.0.1
+        specifier: 30.0.1
         version: 30.0.1(@noble/hashes@1.8.0)
       marked:
-        specifier: ^18.0.9
+        specifier: 18.0.9
         version: 18.0.9
     devDependencies:
       '@eslint/js':
@@ -31,7 +31,7 @@ importers:
         specifier: 5.0.6
         version: 5.0.6
       '@types/jsdom':
-        specifier: ^30.0.0
+        specifier: 30.0.0
         version: 30.0.0
       '@types/node':
         specifier: 26.1.2
