@@ -1,19 +1,24 @@
-# ChatGPT 长截图
+# 分享图片生成器
 
-将公开的 ChatGPT 分享链接转换为保留原站样式的长截图。目标是优先生成单张 PNG；内容过长时，按消息边界输出连续分图。
+将公开的 ChatGPT 对话或一段文字排版成清晰、适合分享的图片。
 
-> 当前状态：基础工程已完成，包括本地 Express + Vite 服务、健康检查和严格的 ChatGPT 分享链接校验。`POST /api/render`、Playwright 截图流程、分图和完整移动端界面尚在开发中，因此当前版本还不能生成截图。
+支持两种内容来源：
 
-## 支持范围
+- **ChatGPT 链接**：粘贴 `https://chatgpt.com/s/t_<32 位小写十六进制>` 公开分享链接，服务端用 Playwright 抽取对话并按“简洁对话”样式排版。
+- **输入文字**：直接输入约 100–500 字（最多 2000 个 Unicode 字符），按“文字卡片”样式排版。
 
-- 只接受公开的 `https://chatgpt.com/s/t_<32 位小写十六进制>` 链接。
-- 不接受登录 Cookie、私有聊天或任意网页地址。
-- 不存储链接、聊天正文、HTML、Cookie 或截图历史。
-- 第一阶段在本地运行；后续使用 Cloudflare Workers Static Assets、Worker API 和 Browser Run 部署。
+两种来源都生成一张 PNG，可在页面预览并保存。
+
+## 支持范围与隐私
+
+- 只接受公开的 ChatGPT 分享链接，不接受登录 Cookie、私有聊天或任意网页地址。
+- 文字内容只在当前请求内存和返回的 PNG 中存在；不存储链接、对话正文、HTML、Cookie 或图片历史。
+- 所有 API 与图片响应都设置 `Cache-Control: no-store`。
+- 当前为本地运行；公网部署计划见 [`docs/cloudflare-deployment.md`](docs/cloudflare-deployment.md)。
 
 ## 环境要求
 
-- Node.js 22.13.0 或更高版本；推荐使用 `.node-version` 中的 Node 22 LTS。
+- Node.js 22.13.0 或更高版本（见 `.node-version`）。
 - pnpm 10.15.0。
 
 ## 安装与本地运行
@@ -35,10 +40,9 @@ HOST=0.0.0.0 pnpm dev
 ## 验证
 
 ```bash
-pnpm verify
+pnpm verify        # lint、typecheck、单元/集成测试、构建、生产 E2E
+pnpm tsx scripts/smoke-render.ts   # 用合成 DOM 和示例文字验证两条渲染链路（无网络依赖）
 ```
-
-`verify` 会依次运行代码检查、类型检查、测试、构建，并使用构建后的生产服务执行浏览器 E2E。
 
 也可以手工验证生产构建：
 
@@ -47,7 +51,22 @@ pnpm build
 pnpm start
 ```
 
-健康检查：`GET /api/health` 返回 `{"status":"ok"}`，且响应使用 `Cache-Control: no-store`。
+健康检查：`GET /api/health` 返回 `{"status":"ok"}`。
+
+## API
+
+`POST /api/render`，请求体为 JSON：
+
+```jsonc
+// ChatGPT 链接
+{ "source": "chatgpt-share", "url": "https://chatgpt.com/s/t_...", "style": "conversation-clean" }
+// 纯文字
+{ "source": "plain-text", "text": "要分享的文字", "style": "text-card" }
+// 兼容旧版
+{ "url": "https://chatgpt.com/s/t_..." }
+```
+
+成功返回 `image/png`。校验失败返回 400，错误码包括 `unsupported_share_url`、`invalid_text`、`text_too_long`、`unsupported_style`、`invalid_request`；渲染失败返回 502 `browser_unavailable`。
 
 ## 源码打包
 
@@ -59,14 +78,11 @@ pnpm package:source
 
 ## 路线图
 
-1. 完成安全错误、网络策略、遥测脱敏和本地限流。
-2. 实现本地 Playwright 浏览器运行时并验证 ChatGPT 页面结构。
-3. 完成正文隔离、单图/分图、`POST /api/render` 和移动端界面。
-4. 增加 GitHub CI。
-5. 在受保护的 Cloudflare staging 环境验证 Browser Run。
-6. 接入 Worker API、Static Assets、Turnstile、分布式限流和并发控制后公开上线。
+1. 继续打磨对话与文字模板（长内容、深色模式、更多阅读风格）。
+2. 用真实链接持续校准 ChatGPT DOM 抽取与净化。
+3. 以 Node 应用前置 Cloudflare 的方式部署（边缘速率限制、可选 Cloudflare Access）。
 
-详细状态和部署规程见 [`docs/status-and-roadmap.md`](docs/status-and-roadmap.md) 与 [`docs/cloudflare-deployment.md`](docs/cloudflare-deployment.md)。
+更多状态见 [`docs/status-and-roadmap.md`](docs/status-and-roadmap.md)。
 
 ## 许可证
 
