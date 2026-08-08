@@ -1,2 +1,28 @@
 node_modules/
 dist/
+.cache/
+node_modules/.cache/
+.pnpm-store/
+.wrangler/
+.claude/
+.DS_Store
+vite.config.ts.timestamp-*
+vitest.config.ts.timestamp-*
+playwright-report/
+test-results/
+screenshots/
+artifacts/
+*.png
+# Style sample thumbnails are committed so the picker can show them.
+!src/web/public/samples/*.png
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+*.log
+.superpowers/
+
+# Local-only handoff and planning notes, not part of the public source.
+HANDOFF.md
+IMPLEMENTATION-PLAN.md

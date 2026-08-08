@@ -18,10 +18,6 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
-    defaults:
-      run:
-        working-directory: cloudflare/chatgpt-screenshot
-
     env:
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
 
@@ -32,7 +28,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: cloudflare/chatgpt-screenshot/.node-version
+          node-version-file: .node-version
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -47,7 +43,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: playwright-${{ runner.os }}-${{ hashFiles('cloudflare/chatgpt-screenshot/pnpm-lock.yaml') }}
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
