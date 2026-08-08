@@ -10,23 +10,29 @@
   <body>
     <main id="app">
       <h1>分享图片生成器</h1>
-      <p class="hint">将 ChatGPT 对话或一段文字排版成清晰的分享图片。</p>
+      <p class="hint">把 ChatGPT 对话、网页文章或一段文字排版成清晰的分享图片。</p>
 
       <form id="render-form">
         <fieldset class="mode-switch">
           <legend>内容来源</legend>
           <label><input type="radio" name="source" value="chatgpt-share" checked /> ChatGPT 链接</label>
+          <label><input type="radio" name="source" value="web-link" /> 网页链接</label>
           <label><input type="radio" name="source" value="plain-text" /> 输入文字</label>
         </fieldset>
 
-        <label class="field" id="url-field">
-          <span class="label">分享链接</span>
-          <input id="share-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/s/t_..." required />
+        <label class="field" id="chatgpt-field">
+          <span class="label">ChatGPT 分享链接</span>
+          <input id="chatgpt-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/s/t_..." required />
+        </label>
+
+        <label class="field" id="web-field" hidden>
+          <span class="label">网页链接（任意 http(s) 文章页）</span>
+          <input id="web-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/article" />
         </label>
 
         <label class="field" id="text-field" hidden>
-          <span class="label">分享文字</span>
-          <textarea id="share-text" name="text" rows="10" maxlength="2000" placeholder="输入想做成卡片的文字，推荐约 100–500 字。"></textarea>
+          <span class="label">分享文字（支持 Markdown）</span>
+          <textarea id="share-text" name="text" rows="10" maxlength="2000" placeholder="# 标题&#10;&#10;支持 **加粗**、列表、代码块、链接等 Markdown 语法。推荐约 100–500 字。"></textarea>
           <span id="text-count" class="counter">0 / 2000 · 推荐 100–500 字</span>
         </label>
 

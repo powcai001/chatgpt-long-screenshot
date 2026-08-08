@@ -2,6 +2,8 @@ import type { RenderSource, RenderStyleOption } from "../shared/api-types";
 import { RENDER_STYLE_OPTIONS } from "../shared/api-types";
 import "./styles.css";
 
+type SourceField = "chatgpt" | "web" | "text";
+
 function getElement<T extends Element = Element>(selector: string): T {
   const element = document.querySelector<T>(selector);
   if (!element) throw new Error(`Required element not found: ${selector}`);
@@ -9,9 +11,11 @@ function getElement<T extends Element = Element>(selector: string): T {
 }
 
 const form = getElement<HTMLFormElement>("#render-form");
-const urlField = getElement<HTMLElement>("#url-field");
+const chatgptField = getElement<HTMLElement>("#chatgpt-field");
+const webField = getElement<HTMLElement>("#web-field");
 const textField = getElement<HTMLElement>("#text-field");
-const urlInput = getElement<HTMLInputElement>("#share-url");
+const chatgptInput = getElement<HTMLInputElement>("#chatgpt-url");
+const webInput = getElement<HTMLInputElement>("#web-url");
 const textInput = getElement<HTMLTextAreaElement>("#share-text");
 const textCount = getElement<HTMLElement>("#text-count");
 const styleSelect = getElement<HTMLSelectElement>("#style");
@@ -20,6 +24,12 @@ const status = getElement<HTMLParagraphElement>("#status");
 const result = getElement<HTMLElement>("#result");
 const preview = getElement<HTMLImageElement>("#preview");
 const download = getElement<HTMLAnchorElement>("#download");
+
+const FIELDS: Record<RenderSource, SourceField> = {
+  "chatgpt-share": "chatgpt",
+  "web-link": "web",
+  "plain-text": "text",
+};
 
 let currentSource: RenderSource = "chatgpt-share";
 let currentObjectUrl: string | null = null;
@@ -30,19 +40,19 @@ function setStatus(message: string, tone: "idle" | "busy" | "error" = "idle") {
 }
 
 function stylesFor(source: RenderSource): readonly RenderStyleOption[] {
-  return RENDER_STYLE_OPTIONS.filter((option) => option.source === source);
+  return RENDER_STYLE_OPTIONS.filter((option) => option.sources.includes(source));
 }
 
 function updateMode(source: RenderSource) {
   currentSource = source;
-  const isText = source === "plain-text";
-  urlField.hidden = isText;
-  textField.hidden = !isText;
-  urlInput.required = !isText;
-  textInput.required = isText;
-  styleSelect.replaceChildren(
-    ...stylesFor(source).map((style) => new Option(style.label, style.id)),
-  );
+  const field = FIELDS[source];
+  chatgptField.hidden = field !== "chatgpt";
+  webField.hidden = field !== "web";
+  textField.hidden = field !== "text";
+  chatgptInput.required = field === "chatgpt";
+  webInput.required = field === "web";
+  textInput.required = field === "text";
+  styleSelect.replaceChildren(...stylesFor(source).map((style) => new Option(style.label, style.id)));
 }
 
 function updateTextCount() {
@@ -57,6 +67,12 @@ function showResult(blob: Blob) {
   result.hidden = false;
 }
 
+function buildPayload(source: RenderSource, style: string) {
+  if (source === "plain-text") return { source, text: textInput.value, style };
+  const url = (source === "web-link" ? webInput.value : chatgptInput.value).trim();
+  return { source, url, style };
+}
+
 form.addEventListener("change", (event) => {
   const input = event.target;
   if (input instanceof HTMLInputElement && input.name === "source") {
@@ -67,17 +83,14 @@ textInput.addEventListener("input", updateTextCount);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const payload = currentSource === "plain-text"
-    ? { source: currentSource, text: textInput.value, style: styleSelect.value }
-    : { source: currentSource, url: urlInput.value.trim(), style: styleSelect.value };
+  const style = styleSelect.value;
+  const payload = buildPayload(currentSource, style);
 
-  if (currentSource === "plain-text" && textInput.value.trim().length === 0) {
-    setStatus("请先输入要分享的文字。", "error");
-    return;
-  }
-  if (currentSource === "chatgpt-share" && urlInput.value.trim().length === 0) {
-    setStatus("请先粘贴分享链接。", "error");
-    return;
+  if (currentSource === "plain-text") {
+    if (textInput.value.trim().length === 0) return setStatus("请先输入要分享的文字。", "error");
+  } else {
+    const url = payload.url as string;
+    if (!url) return setStatus("请先粘贴链接。", "error");
   }
 
   submitButton.disabled = true;
@@ -108,11 +121,14 @@ async function describeError(response: Response): Promise<string> {
   let code = "";
   try { code = (await response.json() as { error?: string }).error ?? ""; } catch { /* binary/empty response */ }
   const messages: Record<string, string> = {
-    unsupported_share_url: "链接格式不受支持，请确认是 ChatGPT 公开分享链接。",
+    unsupported_share_url: "ChatGPT 链接格式不受支持。",
+    unsupported_url: "链接不是有效的 http(s) 网址。",
     invalid_text: "请输入要分享的文字。",
     text_too_long: "文字超过 2000 字，请精简后再试。",
     unsupported_style: "所选图片风格暂不支持。",
     invalid_request: "请求内容不正确。",
+    conversation_not_found: "未在页面中找到 ChatGPT 对话内容。",
+    article_not_found: "未能从该网页提取正文，请换一个文章页。",
   };
   if (messages[code]) return messages[code];
   if (response.status === 413) return "请求内容过大。";
