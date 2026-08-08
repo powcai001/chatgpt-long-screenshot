@@ -6,10 +6,10 @@ describe("render styles", () => {
   it("exposes one conversation style and five shared article themes", () => {
     expect(listStyles("chatgpt-share").map((s) => s.id)).toEqual(["conversation-clean"]);
     expect(listStyles("web-link").map((s) => s.id)).toEqual([
-      "article-clean", "article-apple", "article-dark", "article-magazine", "article-social",
+      "article-clean", "article-apple", "article-dark", "article-magazine", "article-social", "article-liuguang",
     ]);
     expect(listStyles("plain-text").map((s) => s.id)).toEqual([
-      "article-clean", "article-apple", "article-dark", "article-magazine", "article-social",
+      "article-clean", "article-apple", "article-dark", "article-magazine", "article-social", "article-liuguang",
     ]);
   });
 

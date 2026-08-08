@@ -102,6 +102,19 @@ const THEME_CSS: Record<ArticleTheme, string> = {
     .body { font-size: 17px; line-height: 1.7; overflow-wrap: anywhere; }
     .card-footer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 12px; text-align: center; }
   `,
+  "article-liuguang": `
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { background: #eef3ff; color: #17213d; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+    .card { --accent:#5964e8; --muted:#667085; --rule:rgba(89,100,232,.16); --code-bg:rgba(255,255,255,.7); --inline-code-bg:rgba(255,255,255,.7); width: min(100%, 760px); margin: 0 auto; padding: 42px 46px 32px; border: 1px solid rgba(255,255,255,.8); border-radius: 28px; background: radial-gradient(circle at 12% 8%, rgba(255,255,255,.95), transparent 36%), linear-gradient(135deg, #f4eaff 0%, #eaf1ff 48%, #e8fff7 100%); box-shadow: 0 18px 60px rgba(78, 88, 170, .16); }
+    .card .kicker { display: inline-flex; align-items: center; gap: 7px; color: #5964e8; font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .card .kicker::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #ff8dc7, #7b8cff); box-shadow: 0 0 0 5px rgba(123,140,255,.12); }
+    .card h1.title { font-size: 34px; line-height: 1.18; font-weight: 800; letter-spacing: -.02em; margin: 13px 0 24px; color: #20294a; }
+    .body { font-size: 18px; line-height: 1.75; overflow-wrap: anywhere; }
+    .body p, .body li, .body blockquote, .body pre { color: #273354; }
+    .card-footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 12px; text-align: right; }
+  `,
 };
 
 function renderTurn(turn: ConversationTurn): string {

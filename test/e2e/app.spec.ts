@@ -17,7 +17,7 @@ test("switches across ChatGPT, web-link and text modes", async ({ page }) => {
 
   // Web-link mode shows the five article themes.
   await page.getByRole("radio", { name: "网页链接" }).check();
-  await expect(page.locator(".style-thumb span")).toHaveText(["简约白", "苹果风", "深色", "杂志风", "社交卡片"]);
+  await expect(page.locator(".style-thumb span")).toHaveText(["简约白", "苹果风", "深色", "杂志风", "社交卡片", "流光卡片"]);
 
   // Text mode counts code points and submits with the default article style.
   await page.getByRole("radio", { name: "输入文字" }).check();

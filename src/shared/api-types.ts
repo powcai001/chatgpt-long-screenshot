@@ -9,7 +9,8 @@ export type ArticleTheme =
   | "article-apple"
   | "article-dark"
   | "article-magazine"
-  | "article-social";
+  | "article-social"
+  | "article-liuguang";
 
 export type RenderStyleId = "conversation-clean" | ArticleTheme;
 
@@ -64,6 +65,7 @@ export const RENDER_STYLE_OPTIONS: readonly RenderStyleOption[] = Object.freeze(
   article("article-dark", "深色"),
   article("article-magazine", "杂志风"),
   article("article-social", "社交卡片"),
+  article("article-liuguang", "流光卡片"),
 ]);
 
 export function isArticleSource(source: RenderSource): boolean {
