@@ -3,42 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="referrer"
-      content="no-referrer"
-    />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'"
-    />
-    <title>聊天长截图</title>
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'" />
+    <title>分享图片生成器</title>
   </head>
   <body>
     <main id="app">
-      <h1>聊天长截图</h1>
-      <p class="hint">粘贴 ChatGPT 公开分享链接，生成保留原站长截图。</p>
+      <h1>分享图片生成器</h1>
+      <p class="hint">将 ChatGPT 对话或一段文字排版成清晰的分享图片。</p>
 
       <form id="render-form">
-        <label class="field">
+        <fieldset class="mode-switch">
+          <legend>内容来源</legend>
+          <label><input type="radio" name="source" value="chatgpt-share" checked /> ChatGPT 链接</label>
+          <label><input type="radio" name="source" value="plain-text" /> 输入文字</label>
+        </fieldset>
+
+        <label class="field" id="url-field">
           <span class="label">分享链接</span>
-          <input
-            id="share-url"
-            name="url"
-            type="url"
-            inputmode="url"
-            autocomplete="off"
-            placeholder="https://chatgpt.com/s/t_..."
-            required
-          />
+          <input id="share-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/s/t_..." required />
         </label>
-        <button id="submit" type="submit">生成长图</button>
+
+        <label class="field" id="text-field" hidden>
+          <span class="label">分享文字</span>
+          <textarea id="share-text" name="text" rows="10" maxlength="2000" placeholder="输入想做成卡片的文字，推荐约 100–500 字。"></textarea>
+          <span id="text-count" class="counter">0 / 2000 · 推荐 100–500 字</span>
+        </label>
+
+        <label class="field">
+          <span class="label">图片风格</span>
+          <select id="style" name="style"></select>
+        </label>
+
+        <button id="submit" type="submit">生成图片</button>
       </form>
 
       <p id="status" class="status" role="status" aria-live="polite"></p>
-
       <section id="result" class="result" hidden>
-        <img id="preview" alt="生成的长截图预览" />
-        <a id="download" class="download" download="chatgpt-screenshot.png">保存图片</a>
+        <img id="preview" alt="生成的分享图片预览" />
+        <a id="download" class="download" download="share-image.png">保存图片</a>
       </section>
     </main>
     <script type="module" src="/main.ts"></script>

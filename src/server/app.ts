@@ -2,8 +2,8 @@ import type { Express } from "express";
 import express from "express";
 import type { ViteDevServer } from "vite";
 
-import { validateChatGptShareUrl } from "./security/url-validator.js";
 import { captureScreenshot, type CaptureFn } from "./render.js";
+import { normalizeRenderRequest } from "./render-request.js";
 
 export interface CreateAppOptions {
   production: boolean;
@@ -13,10 +13,16 @@ export interface CreateAppOptions {
 }
 
 const NO_STORE = "no-store";
+const CLIENT_ERRORS = new Set([
+  "invalid_request",
+  "invalid_text",
+  "text_too_long",
+  "unsupported_style",
+  "unsupported_share_url",
+]);
 
 export function createApp({ production, vite, capture = captureScreenshot }: CreateAppOptions): Express {
   const app = express();
-
   app.use(express.json({ limit: "16kb" }));
 
   app.get("/api/health", (_request, response) => {
@@ -24,21 +30,20 @@ export function createApp({ production, vite, capture = captureScreenshot }: Cre
   });
 
   app.post("/api/render", async (request, response) => {
-    const url = request.body?.url;
-    let canonicalUrl: string;
+    let job;
     try {
-      canonicalUrl = validateChatGptShareUrl(typeof url === "string" ? url : "").canonicalUrl;
-    } catch {
-      response.status(400).set("Cache-Control", NO_STORE).json({ error: "unsupported_share_url" });
+      job = normalizeRenderRequest(request.body);
+    } catch (error) {
+      const code = error instanceof Error && CLIENT_ERRORS.has(error.message)
+        ? error.message
+        : "invalid_request";
+      response.status(400).set("Cache-Control", NO_STORE).json({ error: code });
       return;
     }
 
     try {
-      const png = await capture(canonicalUrl);
-      response
-        .set("Cache-Control", NO_STORE)
-        .set("Content-Type", "image/png")
-        .end(Buffer.from(png));
+      const png = await capture(job);
+      response.set("Cache-Control", NO_STORE).set("Content-Type", "image/png").end(Buffer.from(png));
     } catch {
       response.status(502).set("Cache-Control", NO_STORE).json({ error: "browser_unavailable" });
     }
