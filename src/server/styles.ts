@@ -3,8 +3,8 @@ import { RENDER_STYLE_OPTIONS } from "../shared/api-types.js";
 
 const DEFAULT_STYLES: Readonly<Record<RenderSource, RenderStyleId>> = Object.freeze({
   "chatgpt-share": "conversation-clean",
-  "web-link": "article-clean",
-  "plain-text": "article-clean",
+  "web-link": "article-liuguang",
+  "plain-text": "article-liuguang",
 });
 
 /** Lists registered render styles compatible with one source. */

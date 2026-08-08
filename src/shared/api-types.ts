@@ -60,12 +60,12 @@ function article(id: ArticleTheme, label: string): RenderStyleOption {
 
 export const RENDER_STYLE_OPTIONS: readonly RenderStyleOption[] = Object.freeze([
   Object.freeze({ id: "conversation-clean", label: "简洁对话", sources: Object.freeze<RenderSource[]>(["chatgpt-share"]) }),
+  article("article-liuguang", "流光卡片"),
   article("article-clean", "简约白"),
   article("article-apple", "苹果风"),
   article("article-dark", "深色"),
   article("article-magazine", "杂志风"),
   article("article-social", "社交卡片"),
-  article("article-liuguang", "流光卡片"),
 ]);
 
 export function isArticleSource(source: RenderSource): boolean {

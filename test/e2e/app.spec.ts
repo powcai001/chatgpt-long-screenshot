@@ -15,9 +15,10 @@ test("switches across ChatGPT, web-link and text modes", async ({ page }) => {
   // ChatGPT mode shows only the conversation style thumbnail, selected.
   await expect(page.locator(".style-thumb.selected")).toHaveAttribute("data-style-id", "conversation-clean");
 
-  // Web-link mode shows the five article themes.
+  // Web-link mode lists the article themes (liuguang first), with liuguang selected by default.
   await page.getByRole("radio", { name: "网页链接" }).check();
-  await expect(page.locator(".style-thumb span")).toHaveText(["简约白", "苹果风", "深色", "杂志风", "社交卡片", "流光卡片"]);
+  await expect(page.locator(".style-thumb.selected")).toHaveAttribute("data-style-id", "article-liuguang");
+  await expect(page.locator(".style-thumb span")).toHaveText(["流光卡片", "简约白", "苹果风", "深色", "杂志风", "社交卡片"]);
 
   // Text mode counts code points and submits with the default article style.
   await page.getByRole("radio", { name: "输入文字" }).check();
@@ -26,5 +27,5 @@ test("switches across ChatGPT, web-link and text modes", async ({ page }) => {
   await page.getByRole("button", { name: "生成图片" }).click();
 
   await expect(page.getByRole("img", { name: "生成的分享图片预览" })).toBeVisible();
-  expect(requests).toContainEqual({ source: "plain-text", text: "😀一段文字", style: "article-clean", byline: "powercai" });
+  expect(requests).toContainEqual({ source: "plain-text", text: "😀一段文字", style: "article-liuguang", byline: "powcai分享" });
 });

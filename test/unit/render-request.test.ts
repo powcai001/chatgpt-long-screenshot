@@ -49,7 +49,7 @@ describe("normalizeRenderRequest", () => {
 
   it("routes legacy non-ChatGPT URLs to the web-link source", () => {
     expect(normalizeRenderRequest({ url: ARTICLE })).toEqual({
-      source: "web-link", canonicalUrl: ARTICLE, style: "article-clean", byline: "",
+      source: "web-link", canonicalUrl: ARTICLE, style: "article-liuguang", byline: "",
     });
   });
 
@@ -58,7 +58,7 @@ describe("normalizeRenderRequest", () => {
       source: "web-link", canonicalUrl: ARTICLE, style: "article-apple", byline: "powercai",
     });
     expect(normalizeRenderRequest({ source: "plain-text", text: "  一段文字  " })).toEqual({
-      source: "plain-text", text: "一段文字", style: "article-clean", byline: "",
+      source: "plain-text", text: "一段文字", style: "article-liuguang", byline: "",
     });
   });
 

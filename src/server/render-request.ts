@@ -59,7 +59,7 @@ export function normalizeRenderRequest(value: unknown): RenderJob {
       const validated = validateChatGptShareUrl(value.url);
       return { source: "chatgpt-share", canonicalUrl: validated.canonicalUrl, style: "conversation-clean", byline: "" };
     } catch {
-      return { source: "web-link", canonicalUrl: validateWebUrl(value.url), style: "article-clean", byline: "" };
+      return { source: "web-link", canonicalUrl: validateWebUrl(value.url), style: "article-liuguang", byline: "" };
     }
   }
 

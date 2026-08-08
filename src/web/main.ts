@@ -30,7 +30,8 @@ const preview = getElement<HTMLImageElement>("#preview");
 const download = getElement<HTMLAnchorElement>("#download");
 
 let currentSource: RenderSource = "chatgpt-share";
-let currentStyleId: RenderStyleId = "conversation-clean";
+let currentStyleId: RenderStyleId = "article-liuguang";
+let currentPreviewMode: "natural" | "fit" = "fit";
 let currentObjectUrl: string | null = null;
 
 function setStatus(message: string, tone: "idle" | "busy" | "error" = "idle") {
@@ -107,6 +108,7 @@ function updateTextCount() {
 }
 
 function setPreviewMode(mode: "natural" | "fit") {
+  currentPreviewMode = mode;
   previewScroll.classList.toggle("natural", mode === "natural");
   previewScroll.classList.toggle("fit", mode === "fit");
   previewNatural.classList.toggle("selected", mode === "natural");
@@ -195,3 +197,4 @@ async function describeError(response: Response): Promise<string> {
 
 updateMode(currentSource);
 updateTextCount();
+setPreviewMode(currentPreviewMode);
