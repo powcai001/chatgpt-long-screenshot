@@ -61,7 +61,12 @@
             <p class="result-empty-hint">这是所选风格的样子，生成后会替换为你的内容。</p>
           </div>
           <div id="result" class="result" hidden>
-            <div class="preview-scroll">
+            <div class="preview-toolbar">
+              <span>预览</span>
+              <button id="preview-natural" type="button" class="preview-toggle selected">原始大小</button>
+              <button id="preview-fit" type="button" class="preview-toggle">适应窗口</button>
+            </div>
+            <div id="preview-scroll" class="preview-scroll natural">
               <img id="preview" alt="生成的分享图片预览" />
             </div>
             <a id="download" class="download" download="share-image.png">保存图片</a>

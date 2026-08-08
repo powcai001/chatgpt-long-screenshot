@@ -23,6 +23,9 @@ const submitButton = getElement<HTMLButtonElement>("#submit");
 const status = getElement<HTMLParagraphElement>("#status");
 const resultEmpty = getElement<HTMLElement>("#result-empty");
 const result = getElement<HTMLElement>("#result");
+const previewScroll = getElement<HTMLElement>("#preview-scroll");
+const previewNatural = getElement<HTMLButtonElement>("#preview-natural");
+const previewFit = getElement<HTMLButtonElement>("#preview-fit");
 const preview = getElement<HTMLImageElement>("#preview");
 const download = getElement<HTMLAnchorElement>("#download");
 
@@ -102,6 +105,16 @@ function updateMode(source: RenderSource) {
 function updateTextCount() {
   textCount.textContent = `${Array.from(textInput.value).length} / 2000 · 推荐 100–500 字`;
 }
+
+function setPreviewMode(mode: "natural" | "fit") {
+  previewScroll.classList.toggle("natural", mode === "natural");
+  previewScroll.classList.toggle("fit", mode === "fit");
+  previewNatural.classList.toggle("selected", mode === "natural");
+  previewFit.classList.toggle("selected", mode === "fit");
+}
+
+previewNatural.addEventListener("click", () => setPreviewMode("natural"));
+previewFit.addEventListener("click", () => setPreviewMode("fit"));
 
 function showResult(blob: Blob) {
   if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
