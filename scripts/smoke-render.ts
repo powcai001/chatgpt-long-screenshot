@@ -32,12 +32,14 @@ const markdownJob: RenderJob = {
   source: "plain-text",
   text: "# 小记\n\n日常里那些**重复的小事**，其实都在悄悄塑造我们。\n\n- 早起\n- 读书\n- 散步",
   style: "article-apple",
+  byline: "powercai",
 };
 
 const darkJob: RenderJob = {
   source: "plain-text",
   text: "深色模式下，代码与长文更护眼。\n\n```\nconsole.log('hi');\n```",
   style: "article-dark",
+  byline: "来自于知乎分享",
 };
 
 function checkPng(name: string, png: Uint8Array, minBytes: number) {

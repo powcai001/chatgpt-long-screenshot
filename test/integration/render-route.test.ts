@@ -25,10 +25,10 @@ describe("POST /api/render", () => {
     const { capture, app } = withCapture(async () => fakePng());
     const res = await request(app)
       .post("/api/render")
-      .send({ source: "web-link", url: ARTICLE, style: "article-apple" });
+      .send({ source: "web-link", url: ARTICLE, style: "article-apple", byline: "powercai" });
     expect(res.status).toBe(200);
     expect(res.header["content-type"]).toBe("image/png");
-    expect(capture).toHaveBeenCalledWith({ source: "web-link", canonicalUrl: ARTICLE, style: "article-apple" });
+    expect(capture).toHaveBeenCalledWith({ source: "web-link", canonicalUrl: ARTICLE, style: "article-apple", byline: "powercai" });
   });
 
   it("accepts a markdown plain-text request", async () => {
@@ -37,7 +37,7 @@ describe("POST /api/render", () => {
       .post("/api/render")
       .send({ source: "plain-text", text: "# 标题\n正文", style: "article-dark" });
     expect(res.status).toBe(200);
-    expect(capture).toHaveBeenCalledWith({ source: "plain-text", text: "# 标题\n正文", style: "article-dark" });
+    expect(capture).toHaveBeenCalledWith({ source: "plain-text", text: "# 标题\n正文", style: "article-dark", byline: "" });
   });
 
   it.each([

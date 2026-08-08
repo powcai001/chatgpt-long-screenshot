@@ -17,18 +17,21 @@ export interface ChatGptShareRequest {
   readonly source: "chatgpt-share";
   readonly url: string;
   readonly style?: "conversation-clean";
+  readonly byline?: string;
 }
 
 export interface WebLinkRequest {
   readonly source: "web-link";
   readonly url: string;
   readonly style?: ArticleTheme;
+  readonly byline?: string;
 }
 
 export interface PlainTextRequest {
   readonly source: "plain-text";
   readonly text: string;
   readonly style?: ArticleTheme;
+  readonly byline?: string;
 }
 
 export interface LegacyRenderRequest {
@@ -38,9 +41,9 @@ export interface LegacyRenderRequest {
 export type RenderRequest = ChatGptShareRequest | WebLinkRequest | PlainTextRequest | LegacyRenderRequest;
 
 export type RenderJob =
-  | Readonly<{ source: "chatgpt-share"; canonicalUrl: string; style: "conversation-clean" }>
-  | Readonly<{ source: "web-link"; canonicalUrl: string; style: ArticleTheme }>
-  | Readonly<{ source: "plain-text"; text: string; style: ArticleTheme }>;
+  | Readonly<{ source: "chatgpt-share"; canonicalUrl: string; style: "conversation-clean"; byline: string }>
+  | Readonly<{ source: "web-link"; canonicalUrl: string; style: ArticleTheme; byline: string }>
+  | Readonly<{ source: "plain-text"; text: string; style: ArticleTheme; byline: string }>;
 
 export interface RenderStyleOption {
   readonly id: RenderStyleId;

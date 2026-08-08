@@ -37,7 +37,9 @@ export async function renderHtmlToPng(context: BrowserContext, html: string): Pr
   try {
     await page.setContent(html, { waitUntil: "networkidle", timeout: 30_000 });
     await page.waitForTimeout(300);
-    return new Uint8Array(await page.screenshot({ fullPage: true, type: "png" }));
+    // Screenshot only the content container so centered cards do not leave
+    // wide blank margins around the formatted area.
+    return new Uint8Array(await page.locator(".card, .sheet").screenshot({ type: "png" }));
   } finally {
     await page.close();
   }
@@ -46,8 +48,9 @@ export async function renderHtmlToPng(context: BrowserContext, html: string): Pr
 export async function renderConversationToPng(
   context: BrowserContext,
   turns: readonly ConversationTurn[],
+  byline = "",
 ): Promise<Uint8Array> {
-  return renderHtmlToPng(context, buildConversationHtml(turns));
+  return renderHtmlToPng(context, buildConversationHtml(turns, byline));
 }
 
 /** Renders a ChatGPT conversation, a web article, or a markdown card to PNG. */
@@ -58,7 +61,7 @@ export async function captureScreenshot(job: RenderJob): Promise<Uint8Array> {
     const context = await browser.newContext({ viewport: { width: 860, height: 1200 }, deviceScaleFactor: 2 });
 
     if (job.source === "plain-text") {
-      return await renderHtmlToPng(context, buildArticleHtml(job.style, undefined, renderMarkdown(job.text)));
+      return await renderHtmlToPng(context, buildArticleHtml(job.style, undefined, renderMarkdown(job.text), job.byline));
     }
 
     const page = await context.newPage();
@@ -68,10 +71,10 @@ export async function captureScreenshot(job: RenderJob): Promise<Uint8Array> {
 
       if (job.source === "web-link") {
         const article = await extractArticle(page);
-        return await renderHtmlToPng(context, buildArticleHtml(job.style, article.title, article.contentHtml));
+        return await renderHtmlToPng(context, buildArticleHtml(job.style, article.title, article.contentHtml, job.byline));
       }
 
-      return await renderConversationToPng(context, await extractConversation(page));
+      return await renderConversationToPng(context, await extractConversation(page), job.byline);
     } finally {
       await page.close();
     }

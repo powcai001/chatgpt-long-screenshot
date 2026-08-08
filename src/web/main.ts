@@ -19,6 +19,7 @@ const webInput = getElement<HTMLInputElement>("#web-url");
 const textInput = getElement<HTMLTextAreaElement>("#share-text");
 const textCount = getElement<HTMLElement>("#text-count");
 const styleSelect = getElement<HTMLSelectElement>("#style");
+const bylineInput = getElement<HTMLInputElement>("#byline");
 const submitButton = getElement<HTMLButtonElement>("#submit");
 const status = getElement<HTMLParagraphElement>("#status");
 const result = getElement<HTMLElement>("#result");
@@ -68,9 +69,10 @@ function showResult(blob: Blob) {
 }
 
 function buildPayload(source: RenderSource, style: string) {
-  if (source === "plain-text") return { source, text: textInput.value, style };
+  const byline = bylineInput.value.trim();
+  if (source === "plain-text") return { source, text: textInput.value, style, byline };
   const url = (source === "web-link" ? webInput.value : chatgptInput.value).trim();
-  return { source, url, style };
+  return { source, url, style, byline };
 }
 
 form.addEventListener("change", (event) => {

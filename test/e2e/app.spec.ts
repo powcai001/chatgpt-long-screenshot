@@ -27,5 +27,5 @@ test("switches across ChatGPT, web-link and text modes", async ({ page }) => {
   await page.getByRole("button", { name: "生成图片" }).click();
 
   await expect(page.getByRole("img", { name: "生成的分享图片预览" })).toBeVisible();
-  expect(requests).toContainEqual({ source: "plain-text", text: "😀一段文字", style: "article-clean" });
+  expect(requests).toContainEqual({ source: "plain-text", text: "😀一段文字", style: "article-clean", byline: "powercai" });
 });

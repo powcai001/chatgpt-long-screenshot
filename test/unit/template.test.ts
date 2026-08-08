@@ -15,22 +15,29 @@ describe("buildConversationHtml", () => {
 });
 
 describe("buildArticleHtml", () => {
-  it.each(THEMES)("renders the %s theme with title, body and footer", (theme) => {
-    const html = buildArticleHtml(theme, "标题", "<p>正文</p>");
+  it.each(THEMES)("renders the %s theme with title, body and byline footer", (theme) => {
+    const html = buildArticleHtml(theme, "标题", "<p>正文</p>", "powercai");
     expect(html).toContain("<!doctype html>");
     expect(html).toContain("标题");
     expect(html).toContain("正文");
-    expect(html).toContain("聊天长截图");
+    expect(html).toContain("powercai");
+    expect(html).not.toContain("长截图");
     expect(html).toContain(`class="card"`);
   });
 
-  it("escapes the title and body is not double-escaped for trusted html", () => {
-    const html = buildArticleHtml("article-clean", "A & B <c>", "<p>ok</p>");
+  it("escapes the title and byline", () => {
+    const html = buildArticleHtml("article-clean", "A & B <c>", "<p>ok</p>", "<x>");
     expect(html).toContain("A &amp; B &lt;c&gt;");
+    expect(html).toContain("&lt;x&gt;");
   });
 
   it("omits the title block when there is no title", () => {
     const html = buildArticleHtml("article-apple", undefined, "<p>正文</p>");
     expect(html).not.toContain("class=\"title\"");
+  });
+
+  it("omits the footer element when there is no byline", () => {
+    const html = buildArticleHtml("article-clean", "标题", "<p>正文</p>");
+    expect(html).not.toContain("<footer");
   });
 });

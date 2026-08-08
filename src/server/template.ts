@@ -100,8 +100,7 @@ const THEME_CSS: Record<ArticleTheme, string> = {
     .card .kicker { display: inline-block; color: var(--accent); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: #eef2ff; }
     .card h1.title { font-size: 26px; line-height: 1.3; font-weight: 800; margin: 14px 0 16px; }
     .body { font-size: 17px; line-height: 1.7; overflow-wrap: anywhere; }
-    .card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 12px; }
-    .card-footer .brand { font-weight: 700; color: var(--accent); }
+    .card-footer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 12px; text-align: center; }
   `,
 };
 
@@ -111,19 +110,17 @@ function renderTurn(turn: ConversationTurn): string {
   return `    <section class="turn ${roleClass}"><div class="turn-role">${label}</div><div class="turn-content">${turn.html}</div></section>`;
 }
 
-export function buildConversationHtml(turns: readonly ConversationTurn[]): string {
+export function buildConversationHtml(turns: readonly ConversationTurn[], byline = ""): string {
   const body = turns.map(renderTurn).join("\n");
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatGPT 对话</title><style>${CONVERSATION_STYLES}</style></head><body><div class="sheet"><header class="sheet-header"><span class="dot"></span><span class="title">ChatGPT 对话</span></header>${body}<footer class="sheet-footer">由 聊天长截图 生成</footer></div></body></html>`;
+  const footer = byline ? `<footer class="sheet-footer">${escapeHtml(byline)}</footer>` : "";
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ChatGPT 对话</title><style>${CONVERSATION_STYLES}</style></head><body><div class="sheet"><header class="sheet-header"><span class="dot"></span><span class="title">ChatGPT 对话</span></header>${body}${footer}</div></body></html>`;
 }
 
-export function buildArticleHtml(theme: ArticleTheme, title: string | undefined, bodyHtml: string): string {
+export function buildArticleHtml(theme: ArticleTheme, title: string | undefined, bodyHtml: string, byline = ""): string {
   const safeTitle = title ? escapeHtml(title) : "";
   const titleBlock = safeTitle
-    ? `<span class="kicker">文章</span><h1 class="title">${safeTitle}</h1>${theme === "article-magazine" ? '<div class="rule"></div>' : ""}`
+    ? `<h1 class="title">${safeTitle}</h1>${theme === "article-magazine" ? '<div class="rule"></div>' : ""}`
     : "";
-  const footer =
-    theme === "article-social"
-      ? `<footer class="card-footer"><span>由 聊天长截图 生成</span><span class="brand">长截图</span></footer>`
-      : `<footer class="card-footer">由 聊天长截图 生成</footer>`;
-  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle || "分享文章"}</title><style>${THEME_CSS[theme]}${READING_ELEMENTS}</style></head><body><article class="card">${titleBlock}<div class="body">${bodyHtml}</div>${footer}</article></body></html>`;
+  const footer = byline ? `<footer class="card-footer">${escapeHtml(byline)}</footer>` : "";
+  return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${safeTitle || "分享"}</title><style>${THEME_CSS[theme]}${READING_ELEMENTS}</style></head><body><article class="card">${titleBlock}<div class="body">${bodyHtml}</div>${footer}</article></body></html>`;
 }
