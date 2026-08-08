@@ -17,6 +17,7 @@ const webInput = getElement<HTMLInputElement>("#web-url");
 const textInput = getElement<HTMLTextAreaElement>("#share-text");
 const textCount = getElement<HTMLElement>("#text-count");
 const stylePicker = getElement<HTMLElement>("#style-picker");
+const samplePreview = getElement<HTMLImageElement>("#sample-preview");
 const bylineInput = getElement<HTMLInputElement>("#byline");
 const submitButton = getElement<HTMLButtonElement>("#submit");
 const status = getElement<HTMLParagraphElement>("#status");
@@ -75,6 +76,14 @@ function syncPickerSelection() {
 function selectStyle(id: RenderStyleId) {
   currentStyleId = id;
   syncPickerSelection();
+  updateSamplePreview();
+  // A previously generated image used the old style; show the sample again.
+  result.hidden = true;
+  resultEmpty.hidden = false;
+}
+
+function updateSamplePreview() {
+  samplePreview.src = `/samples/${currentStyleId}.png`;
 }
 
 function updateMode(source: RenderSource) {
@@ -87,6 +96,7 @@ function updateMode(source: RenderSource) {
   webInput.required = field === "web";
   textInput.required = field === "text";
   renderStylePicker(source);
+  updateSamplePreview();
 }
 
 function updateTextCount() {

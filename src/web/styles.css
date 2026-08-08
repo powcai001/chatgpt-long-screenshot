@@ -14,7 +14,7 @@ body {
   font-size: 16px; line-height: 1.5;
 }
 main {
-  max-width: 1180px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: max(1.25rem, env(safe-area-inset-top)) clamp(1rem, 3vw, 2.5rem) max(2rem, env(safe-area-inset-bottom));
 }
@@ -23,9 +23,9 @@ h1 { margin: 0 0 .35rem; font-size: 1.6rem; }
 .hint { margin: 0; color: var(--muted); font-size: .98rem; }
 
 /* Two-column workspace on desktop, stacked on mobile. */
-.workspace { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: start; }
+.workspace { display: grid; grid-template-columns: 1fr; gap: 1.5rem; align-items: stretch; }
 @media (min-width: 920px) {
-  .workspace { grid-template-columns: minmax(360px, 460px) 1fr; gap: 2.5rem; }
+  .workspace { grid-template-columns: minmax(400px, 520px) minmax(0, 1fr); gap: 2rem; align-items: start; }
   .result-panel { position: sticky; top: 1.25rem; }
 }
 
@@ -83,9 +83,29 @@ button:disabled { opacity: .6; cursor: progress; }
 .status[data-tone="error"] { color: var(--error); }
 .status[data-tone="busy"] { color: var(--accent); }
 
-.result-panel { min-height: 200px; }
-.result-empty { color: var(--muted); text-align: center; padding: 2.5rem 1rem; }
-.result { display: flex; flex-direction: column; gap: .9rem; }
-.result img { width: 100%; height: auto; border: 1px solid var(--border); border-radius: .5rem; background: #fff; }
-.download { align-self: flex-start; padding: .6rem 1rem; border: 1px solid var(--accent); border-radius: .5rem; color: var(--accent); text-decoration: none; }
+.result-panel {
+  min-height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.result-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.sample-preview {
+  width: auto;
+  max-width: 100%;
+  max-height: 78vh;
+  border: 1px solid var(--border);
+  border-radius: .5rem;
+  background: #fff;
+}
+.result-empty-hint { margin: 0; color: var(--muted); font-size: .9rem; text-align: center; }
+.result { display: flex; flex-direction: column; align-items: center; gap: .9rem; width: 100%; }
+.result img { width: 100%; max-height: 80vh; height: auto; border: 1px solid var(--border); border-radius: .5rem; background: #fff; }
+.download { padding: .6rem 1rem; border: 1px solid var(--accent); border-radius: .5rem; color: var(--accent); text-decoration: none; }
 [hidden] { display: none !important; }
