@@ -13,6 +13,8 @@ test-results/
 screenshots/
 artifacts/
 *.png
+# Style sample thumbnails are committed so the picker can show them.
+!src/web/public/samples/*.png
 .env
 .env.*
 !.env.example

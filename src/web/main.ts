@@ -1,8 +1,6 @@
-import type { RenderSource, RenderStyleOption } from "../shared/api-types";
+import type { RenderSource, RenderStyleId, RenderStyleOption } from "../shared/api-types";
 import { RENDER_STYLE_OPTIONS } from "../shared/api-types";
 import "./styles.css";
-
-type SourceField = "chatgpt" | "web" | "text";
 
 function getElement<T extends Element = Element>(selector: string): T {
   const element = document.querySelector<T>(selector);
@@ -18,21 +16,17 @@ const chatgptInput = getElement<HTMLInputElement>("#chatgpt-url");
 const webInput = getElement<HTMLInputElement>("#web-url");
 const textInput = getElement<HTMLTextAreaElement>("#share-text");
 const textCount = getElement<HTMLElement>("#text-count");
-const styleSelect = getElement<HTMLSelectElement>("#style");
+const stylePicker = getElement<HTMLElement>("#style-picker");
 const bylineInput = getElement<HTMLInputElement>("#byline");
 const submitButton = getElement<HTMLButtonElement>("#submit");
 const status = getElement<HTMLParagraphElement>("#status");
+const resultEmpty = getElement<HTMLElement>("#result-empty");
 const result = getElement<HTMLElement>("#result");
 const preview = getElement<HTMLImageElement>("#preview");
 const download = getElement<HTMLAnchorElement>("#download");
 
-const FIELDS: Record<RenderSource, SourceField> = {
-  "chatgpt-share": "chatgpt",
-  "web-link": "web",
-  "plain-text": "text",
-};
-
 let currentSource: RenderSource = "chatgpt-share";
+let currentStyleId: RenderStyleId = "conversation-clean";
 let currentObjectUrl: string | null = null;
 
 function setStatus(message: string, tone: "idle" | "busy" | "error" = "idle") {
@@ -44,16 +38,55 @@ function stylesFor(source: RenderSource): readonly RenderStyleOption[] {
   return RENDER_STYLE_OPTIONS.filter((option) => option.sources.includes(source));
 }
 
+function renderStylePicker(source: RenderSource) {
+  const options = stylesFor(source);
+  stylePicker.replaceChildren();
+  for (const option of options) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "style-thumb";
+    button.dataset.styleId = option.id;
+    button.setAttribute("role", "radio");
+    button.setAttribute("aria-checked", String(option.id === currentStyleId));
+    const img = document.createElement("img");
+    img.src = `/samples/${option.id}.png`;
+    img.alt = `${option.label} 样例`;
+    img.loading = "lazy";
+    const label = document.createElement("span");
+    label.textContent = option.label;
+    button.append(img, label);
+    button.addEventListener("click", () => selectStyle(option.id));
+    stylePicker.append(button);
+  }
+  if (!options.some((option) => option.id === currentStyleId)) {
+    currentStyleId = options[0].id;
+  }
+  syncPickerSelection();
+}
+
+function syncPickerSelection() {
+  for (const button of stylePicker.querySelectorAll<HTMLButtonElement>(".style-thumb")) {
+    const selected = button.dataset.styleId === currentStyleId;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-checked", String(selected));
+  }
+}
+
+function selectStyle(id: RenderStyleId) {
+  currentStyleId = id;
+  syncPickerSelection();
+}
+
 function updateMode(source: RenderSource) {
   currentSource = source;
-  const field = FIELDS[source];
+  const field = source === "chatgpt-share" ? "chatgpt" : source === "web-link" ? "web" : "text";
   chatgptField.hidden = field !== "chatgpt";
   webField.hidden = field !== "web";
   textField.hidden = field !== "text";
   chatgptInput.required = field === "chatgpt";
   webInput.required = field === "web";
   textInput.required = field === "text";
-  styleSelect.replaceChildren(...stylesFor(source).map((style) => new Option(style.label, style.id)));
+  renderStylePicker(source);
 }
 
 function updateTextCount() {
@@ -65,14 +98,15 @@ function showResult(blob: Blob) {
   currentObjectUrl = URL.createObjectURL(blob);
   preview.src = currentObjectUrl;
   download.href = currentObjectUrl;
+  resultEmpty.hidden = true;
   result.hidden = false;
 }
 
-function buildPayload(source: RenderSource, style: string) {
+function buildPayload(source: RenderSource) {
   const byline = bylineInput.value.trim();
-  if (source === "plain-text") return { source, text: textInput.value, style, byline };
+  if (source === "plain-text") return { source, text: textInput.value, style: currentStyleId, byline };
   const url = (source === "web-link" ? webInput.value : chatgptInput.value).trim();
-  return { source, url, style, byline };
+  return { source, url, style: currentStyleId, byline };
 }
 
 form.addEventListener("change", (event) => {
@@ -85,14 +119,12 @@ textInput.addEventListener("input", updateTextCount);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const style = styleSelect.value;
-  const payload = buildPayload(currentSource, style);
+  const payload = buildPayload(currentSource);
 
   if (currentSource === "plain-text") {
     if (textInput.value.trim().length === 0) return setStatus("请先输入要分享的文字。", "error");
-  } else {
-    const url = payload.url as string;
-    if (!url) return setStatus("请先粘贴链接。", "error");
+  } else if (!(payload.url as string)) {
+    return setStatus("请先粘贴链接。", "error");
   }
 
   submitButton.disabled = true;

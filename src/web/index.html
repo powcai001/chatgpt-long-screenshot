@@ -4,56 +4,65 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="referrer" content="no-referrer" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob:; connect-src 'self'; style-src 'self' 'unsafe-inline'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' blob: data:; connect-src 'self'; style-src 'self' 'unsafe-inline'" />
     <title>分享图片生成器</title>
   </head>
   <body>
     <main id="app">
-      <h1>分享图片生成器</h1>
-      <p class="hint">把 ChatGPT 对话、网页文章或一段文字排版成清晰的分享图片。</p>
+      <header class="page-header">
+        <h1>分享图片生成器</h1>
+        <p class="hint">把 ChatGPT 对话、网页文章或一段文字排版成清晰、适合分享的图片。</p>
+      </header>
 
-      <form id="render-form">
-        <fieldset class="mode-switch">
-          <legend>内容来源</legend>
-          <label><input type="radio" name="source" value="chatgpt-share" checked /> ChatGPT 链接</label>
-          <label><input type="radio" name="source" value="web-link" /> 网页链接</label>
-          <label><input type="radio" name="source" value="plain-text" /> 输入文字</label>
-        </fieldset>
+      <div class="workspace">
+        <section class="form-panel">
+          <form id="render-form">
+            <fieldset class="mode-switch">
+              <legend>内容来源</legend>
+              <label><input type="radio" name="source" value="chatgpt-share" checked /> ChatGPT 链接</label>
+              <label><input type="radio" name="source" value="web-link" /> 网页链接</label>
+              <label><input type="radio" name="source" value="plain-text" /> 输入文字</label>
+            </fieldset>
 
-        <label class="field" id="chatgpt-field">
-          <span class="label">ChatGPT 分享链接</span>
-          <input id="chatgpt-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/s/t_..." required />
-        </label>
+            <label class="field" id="chatgpt-field">
+              <span class="label">ChatGPT 分享链接</span>
+              <input id="chatgpt-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://chatgpt.com/s/t_..." required />
+            </label>
 
-        <label class="field" id="web-field" hidden>
-          <span class="label">网页链接（任意 http(s) 文章页）</span>
-          <input id="web-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/article" />
-        </label>
+            <label class="field" id="web-field" hidden>
+              <span class="label">网页链接（任意 http(s) 文章页）</span>
+              <input id="web-url" name="url" type="url" inputmode="url" autocomplete="off" placeholder="https://example.com/article" />
+            </label>
 
-        <label class="field" id="text-field" hidden>
-          <span class="label">分享文字（支持 Markdown）</span>
-          <textarea id="share-text" name="text" rows="10" maxlength="2000" placeholder="# 标题&#10;&#10;支持 **加粗**、列表、代码块、链接等 Markdown 语法。推荐约 100–500 字。"></textarea>
-          <span id="text-count" class="counter">0 / 2000 · 推荐 100–500 字</span>
-        </label>
+            <label class="field" id="text-field" hidden>
+              <span class="label">分享文字（支持 Markdown）</span>
+              <textarea id="share-text" name="text" rows="8" maxlength="2000" placeholder="# 标题&#10;&#10;支持 **加粗**、列表、代码块、链接等 Markdown 语法。推荐约 100–500 字。"></textarea>
+              <span id="text-count" class="counter">0 / 2000 · 推荐 100–500 字</span>
+            </label>
 
-        <label class="field">
-          <span class="label">图片风格</span>
-          <select id="style" name="style"></select>
-        </label>
+            <div class="field">
+              <span class="label">图片风格</span>
+              <div id="style-picker" class="style-picker" role="radiogroup" aria-label="图片风格"></div>
+            </div>
 
-        <label class="field">
-          <span class="label">署名（显示在图片底部，可自定义）</span>
-          <input id="byline" name="byline" type="text" maxlength="50" autocomplete="off" value="powercai" placeholder="powercai 或 来自于知乎分享" />
-        </label>
+            <label class="field">
+              <span class="label">署名（显示在图片底部，可自定义）</span>
+              <input id="byline" name="byline" type="text" maxlength="50" autocomplete="off" value="powercai" placeholder="powercai 或 来自于知乎分享" />
+            </label>
 
-        <button id="submit" type="submit">生成图片</button>
-      </form>
+            <button id="submit" type="submit">生成图片</button>
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
 
-      <p id="status" class="status" role="status" aria-live="polite"></p>
-      <section id="result" class="result" hidden>
-        <img id="preview" alt="生成的分享图片预览" />
-        <a id="download" class="download" download="share-image.png">保存图片</a>
-      </section>
+        <section class="result-panel" id="result-panel">
+          <div id="result-empty" class="result-empty">生成后，图片会显示在这里。</div>
+          <div id="result" class="result" hidden>
+            <img id="preview" alt="生成的分享图片预览" />
+            <a id="download" class="download" download="share-image.png">保存图片</a>
+          </div>
+        </section>
+      </div>
     </main>
     <script type="module" src="/main.ts"></script>
   </body>
