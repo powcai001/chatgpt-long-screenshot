@@ -1,0 +1,21 @@
+# Render Blueprint — 在 Render 选择 "New > Blueprint" 并连接本仓库，
+# 即可一键创建服务并自动部署。详见 https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: chatgpt-long-screenshot
+    runtime: docker
+    # 免费层：512MB 内存、空闲会休眠。
+    # Chromium 截图吃内存，若出现 OOM 或不希望休眠，把 plan 改成 starter（2GB、常驻）。
+    plan: free
+    # 距离国内访问较近的区域；如不可用可在 Dashboard 改为 oregon/frankfurt 等。
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    # 推送到部署分支即自动重新构建上线（即"同步 GitHub 自动部署"）。
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      # PORT 由 Render 自动注入，应用已通过 process.env.PORT 读取，无需在此设置。
