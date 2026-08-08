@@ -9,7 +9,7 @@ services:
     plan: free
     # 距离国内访问较近的区域；如不可用可在 Dashboard 改为 oregon/frankfurt 等。
     region: singapore
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./cloudflare/chatgpt-screenshot/Dockerfile
     # 推送到部署分支即自动重新构建上线（即"同步 GitHub 自动部署"）。
     autoDeploy: true
     healthCheckPath: /api/health

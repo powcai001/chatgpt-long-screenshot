@@ -15,11 +15,11 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
 
 # 先拷依赖清单，命中 Docker 层缓存：只有 package.json/pnpm-lock.yaml 变了才重新装。
-COPY package.json pnpm-lock.yaml ./
+COPY cloudflare/chatgpt-screenshot/package.json cloudflare/chatgpt-screenshot/pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# 拷源码并构建生产产物（dist/web 静态前端 + dist/server 服务端）。
-COPY . .
+# 拷子项目源码并构建生产产物（dist/web 静态前端 + dist/server 服务端）。
+COPY cloudflare/chatgpt-screenshot/ .
 RUN pnpm build
 
 # 安装 Chromium 及其全部系统依赖。
