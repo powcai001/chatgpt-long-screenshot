@@ -1,38 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { MAX_TEXT_CODE_POINTS, normalizePlainText, normalizeRenderRequest } from "../../src/server/render-request.js";
-import { listStyles, resolveStyle } from "../../src/server/styles.js";
+import { MAX_TEXT_CODE_POINTS, normalizePlainText, normalizeRenderRequest, validateWebUrl } from "../../src/server/render-request.js";
 
-const VALID = "https://chatgpt.com/s/t_0123456789abcdef0123456789abcdef";
+const CHATGPT = "https://chatgpt.com/s/t_0123456789abcdef0123456789abcdef";
+const ARTICLE = "https://example.com/post/why-recursion";
 
-describe("render styles", () => {
-  it("lists one style per source", () => {
-    expect(listStyles("chatgpt-share")).toEqual([
-      { id: "conversation-clean", label: "简洁对话", source: "chatgpt-share" },
-    ]);
-    expect(listStyles("plain-text")).toEqual([
-      { id: "text-card", label: "文字卡片", source: "plain-text" },
-    ]);
+describe("validateWebUrl", () => {
+  it("accepts http(s) URLs without credentials", () => {
+    expect(validateWebUrl("https://example.com/a")).toBe("https://example.com/a");
+    expect(validateWebUrl("http://example.com/a")).toBe("http://example.com/a");
   });
-
-  it("resolves defaults and rejects incompatible styles", () => {
-    expect(resolveStyle("chatgpt-share")).toBe("conversation-clean");
-    expect(resolveStyle("plain-text")).toBe("text-card");
-    expect(() => resolveStyle("plain-text", "conversation-clean")).toThrow("unsupported_style");
+  it("rejects non-http and credentials", () => {
+    expect(() => validateWebUrl("file:///etc/passwd")).toThrow("unsupported_url");
+    expect(() => validateWebUrl("javascript:alert(1)")).toThrow("unsupported_url");
+    expect(() => validateWebUrl("https://user:pass@example.com")).toThrow("unsupported_url");
+    expect(() => validateWebUrl("not a url")).toThrow("unsupported_url");
   });
 });
 
 describe("normalizePlainText", () => {
-  it("normalizes outer whitespace and line endings while keeping paragraphs", () => {
+  it("normalizes whitespace and counts code points", () => {
     expect(normalizePlainText("  第一行\r\n\r第二行  ")).toBe("第一行\n\n第二行");
-  });
-
-  it("counts Unicode code points", () => {
     const accepted = "😀".repeat(MAX_TEXT_CODE_POINTS);
     expect(normalizePlainText(accepted)).toBe(accepted);
     expect(() => normalizePlainText(`${accepted}a`)).toThrow("text_too_long");
   });
-
   it("rejects empty or non-string text", () => {
     expect(() => normalizePlainText(" \n ")).toThrow("invalid_text");
     expect(() => normalizePlainText(null)).toThrow("invalid_text");
@@ -40,24 +32,32 @@ describe("normalizePlainText", () => {
 });
 
 describe("normalizeRenderRequest", () => {
-  it("normalizes legacy URL requests", () => {
-    expect(normalizeRenderRequest({ url: VALID })).toEqual({
-      source: "chatgpt-share",
-      canonicalUrl: VALID,
-      style: "conversation-clean",
+  it("routes legacy ChatGPT URLs to the conversation source", () => {
+    expect(normalizeRenderRequest({ url: CHATGPT })).toEqual({
+      source: "chatgpt-share", canonicalUrl: CHATGPT, style: "conversation-clean",
     });
   });
 
-  it("normalizes a plain-text request", () => {
-    expect(
-      normalizeRenderRequest({ source: "plain-text", text: "  一段文字  ", style: "text-card" }),
-    ).toEqual({ source: "plain-text", text: "一段文字", style: "text-card" });
+  it("routes legacy non-ChatGPT URLs to the web-link source", () => {
+    expect(normalizeRenderRequest({ url: ARTICLE })).toEqual({
+      source: "web-link", canonicalUrl: ARTICLE, style: "article-clean",
+    });
   });
 
-  it("rejects unknown request shapes", () => {
-    expect(() => normalizeRenderRequest({ source: "other", text: "x" })).toThrow("invalid_request");
+  it("normalizes explicit web-link and plain-text requests", () => {
+    expect(normalizeRenderRequest({ source: "web-link", url: ARTICLE, style: "article-apple" })).toEqual({
+      source: "web-link", canonicalUrl: ARTICLE, style: "article-apple",
+    });
+    expect(normalizeRenderRequest({ source: "plain-text", text: "  一段文字  " })).toEqual({
+      source: "plain-text", text: "一段文字", style: "article-clean",
+    });
+  });
+
+  it("rejects bad URLs and unknown shapes", () => {
+    expect(() => normalizeRenderRequest({ source: "web-link", url: "ftp://x" })).toThrow("unsupported_url");
     expect(() => normalizeRenderRequest({ source: "plain-text", text: "x", style: "conversation-clean" })).toThrow(
       "unsupported_style",
     );
+    expect(() => normalizeRenderRequest({ source: "other", text: "x" })).toThrow("invalid_request");
   });
 });

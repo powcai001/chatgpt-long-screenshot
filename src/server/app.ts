@@ -19,7 +19,9 @@ const CLIENT_ERRORS = new Set([
   "text_too_long",
   "unsupported_style",
   "unsupported_share_url",
+  "unsupported_url",
 ]);
+const CONTENT_ERRORS = new Set(["conversation_not_found", "article_not_found"]);
 
 export function createApp({ production, vite, capture = captureScreenshot }: CreateAppOptions): Express {
   const app = express();
@@ -34,9 +36,7 @@ export function createApp({ production, vite, capture = captureScreenshot }: Cre
     try {
       job = normalizeRenderRequest(request.body);
     } catch (error) {
-      const code = error instanceof Error && CLIENT_ERRORS.has(error.message)
-        ? error.message
-        : "invalid_request";
+      const code = error instanceof Error && CLIENT_ERRORS.has(error.message) ? error.message : "invalid_request";
       response.status(400).set("Cache-Control", NO_STORE).json({ error: code });
       return;
     }
@@ -44,8 +44,10 @@ export function createApp({ production, vite, capture = captureScreenshot }: Cre
     try {
       const png = await capture(job);
       response.set("Cache-Control", NO_STORE).set("Content-Type", "image/png").end(Buffer.from(png));
-    } catch {
-      response.status(502).set("Cache-Control", NO_STORE).json({ error: "browser_unavailable" });
+    } catch (error) {
+      const code = error instanceof Error && CONTENT_ERRORS.has(error.message) ? error.message : "browser_unavailable";
+      const status = code === "browser_unavailable" ? 502 : 422;
+      response.status(status).set("Cache-Control", NO_STORE).json({ error: code });
     }
   });
 

@@ -19,12 +19,16 @@
     "package:source": "node scripts/package-source.mjs"
   },
   "dependencies": {
-    "express": "5.2.1"
+    "@mozilla/readability": "^0.6.0",
+    "express": "5.2.1",
+    "jsdom": "^30.0.1",
+    "marked": "^18.0.9"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.62.1",
     "@types/express": "5.0.6",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "26.1.2",
     "@types/supertest": "7.2.1",
     "archiver": "8.0.0",

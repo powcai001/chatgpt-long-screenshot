@@ -1,8 +1,10 @@
 import type { BrowserContext, Page } from "playwright";
 
 import type { RenderJob } from "../shared/api-types.js";
+import { renderMarkdown } from "./markdown.js";
+import { extractArticle } from "./readability.js";
 import { sanitizeReadingHtml } from "./sanitize.js";
-import { buildConversationHtml, buildTextCardHtml, type ConversationTurn } from "./template.js";
+import { buildArticleHtml, buildConversationHtml, type ConversationTurn } from "./template.js";
 
 /** Extracts ordered reading content from a loaded ChatGPT share page. */
 export async function extractConversation(page: Page): Promise<ConversationTurn[]> {
@@ -48,24 +50,27 @@ export async function renderConversationToPng(
   return renderHtmlToPng(context, buildConversationHtml(turns));
 }
 
-/** Renders either a ChatGPT share source or a plain-text card to PNG. */
+/** Renders a ChatGPT conversation, a web article, or a markdown card to PNG. */
 export async function captureScreenshot(job: RenderJob): Promise<Uint8Array> {
   const { chromium } = await import("playwright");
   const browser = await chromium.launch({ headless: true });
   try {
-    const context = await browser.newContext({
-      viewport: { width: 860, height: 1200 },
-      deviceScaleFactor: 2,
-    });
+    const context = await browser.newContext({ viewport: { width: 860, height: 1200 }, deviceScaleFactor: 2 });
 
     if (job.source === "plain-text") {
-      return await renderHtmlToPng(context, buildTextCardHtml(job.text));
+      return await renderHtmlToPng(context, buildArticleHtml(job.style, undefined, renderMarkdown(job.text)));
     }
 
     const page = await context.newPage();
     try {
       await page.goto(job.canonicalUrl, { waitUntil: "networkidle", timeout: 30_000 });
       await page.waitForTimeout(800);
+
+      if (job.source === "web-link") {
+        const article = await extractArticle(page);
+        return await renderHtmlToPng(context, buildArticleHtml(job.style, article.title, article.contentHtml));
+      }
+
       return await renderConversationToPng(context, await extractConversation(page));
     } finally {
       await page.close();

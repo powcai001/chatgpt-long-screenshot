@@ -1,14 +1,31 @@
-import type { RenderJob } from "../shared/api-types.js";
+import type { ArticleTheme, RenderJob } from "../shared/api-types.js";
 import { validateChatGptShareUrl } from "./security/url-validator.js";
 import { resolveStyle } from "./styles.js";
 
 export const MAX_TEXT_CODE_POINTS = 2_000;
 
+/** Accepts any public http(s) URL without credentials. */
+export function validateWebUrl(raw: string): string {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    throw new Error("unsupported_url");
+  }
+
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error("unsupported_url");
+  }
+  if (url.username !== "" || url.password !== "") {
+    throw new Error("unsupported_url");
+  }
+  return url.href;
+}
+
 export function normalizePlainText(value: unknown): string {
   if (typeof value !== "string") {
     throw new Error("invalid_text");
   }
-
   const normalized = value.replace(/\r\n?/g, "\n").trim();
   if (normalized.length === 0) {
     throw new Error("invalid_text");
@@ -24,29 +41,31 @@ export function normalizeRenderRequest(value: unknown): RenderJob {
     throw new Error("invalid_request");
   }
 
-  // Backward compatibility for the first MVP client.
+  // Backward compatibility: legacy {url}. Route ChatGPT share links to the
+  // conversation source; everything else to the generic web-link source.
   if (typeof value.url === "string" && value.source === undefined) {
-    const validated = validateChatGptShareUrl(value.url);
-    return {
-      source: "chatgpt-share",
-      canonicalUrl: validated.canonicalUrl,
-      style: "conversation-clean",
-    };
+    try {
+      const validated = validateChatGptShareUrl(value.url);
+      return { source: "chatgpt-share", canonicalUrl: validated.canonicalUrl, style: "conversation-clean" };
+    } catch {
+      return { source: "web-link", canonicalUrl: validateWebUrl(value.url), style: "article-clean" };
+    }
   }
 
   if (value.source === "chatgpt-share") {
-    if (typeof value.url !== "string") {
-      throw new Error("unsupported_share_url");
-    }
-    const style = resolveStyle("chatgpt-share", value.style);
-    const validated = validateChatGptShareUrl(value.url);
-    return { source: "chatgpt-share", canonicalUrl: validated.canonicalUrl, style: style as "conversation-clean" };
+    const style = resolveStyle("chatgpt-share", value.style) as "conversation-clean";
+    const validated = validateChatGptShareUrl(typeof value.url === "string" ? value.url : "");
+    return { source: "chatgpt-share", canonicalUrl: validated.canonicalUrl, style };
+  }
+
+  if (value.source === "web-link") {
+    const style = resolveStyle("web-link", value.style) as ArticleTheme;
+    return { source: "web-link", canonicalUrl: validateWebUrl(typeof value.url === "string" ? value.url : ""), style };
   }
 
   if (value.source === "plain-text") {
-    const style = resolveStyle("plain-text", value.style);
-    const text = normalizePlainText(value.text);
-    return { source: "plain-text", text, style: style as "text-card" };
+    const style = resolveStyle("plain-text", value.style) as ArticleTheme;
+    return { source: "plain-text", text: normalizePlainText(value.text), style };
   }
 
   throw new Error("invalid_request");

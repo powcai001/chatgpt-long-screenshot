@@ -2,8 +2,16 @@ export interface HealthResponse {
   status: "ok";
 }
 
-export type RenderSource = "chatgpt-share" | "plain-text";
-export type RenderStyleId = "conversation-clean" | "text-card";
+export type RenderSource = "chatgpt-share" | "web-link" | "plain-text";
+
+export type ArticleTheme =
+  | "article-clean"
+  | "article-apple"
+  | "article-dark"
+  | "article-magazine"
+  | "article-social";
+
+export type RenderStyleId = "conversation-clean" | ArticleTheme;
 
 export interface ChatGptShareRequest {
   readonly source: "chatgpt-share";
@@ -11,37 +19,50 @@ export interface ChatGptShareRequest {
   readonly style?: "conversation-clean";
 }
 
+export interface WebLinkRequest {
+  readonly source: "web-link";
+  readonly url: string;
+  readonly style?: ArticleTheme;
+}
+
 export interface PlainTextRequest {
   readonly source: "plain-text";
   readonly text: string;
-  readonly style?: "text-card";
+  readonly style?: ArticleTheme;
 }
 
 export interface LegacyRenderRequest {
   readonly url: string;
 }
 
-export type RenderRequest = ChatGptShareRequest | PlainTextRequest | LegacyRenderRequest;
+export type RenderRequest = ChatGptShareRequest | WebLinkRequest | PlainTextRequest | LegacyRenderRequest;
 
 export type RenderJob =
-  | Readonly<{
-      source: "chatgpt-share";
-      canonicalUrl: string;
-      style: "conversation-clean";
-    }>
-  | Readonly<{
-      source: "plain-text";
-      text: string;
-      style: "text-card";
-    }>;
+  | Readonly<{ source: "chatgpt-share"; canonicalUrl: string; style: "conversation-clean" }>
+  | Readonly<{ source: "web-link"; canonicalUrl: string; style: ArticleTheme }>
+  | Readonly<{ source: "plain-text"; text: string; style: ArticleTheme }>;
 
 export interface RenderStyleOption {
   readonly id: RenderStyleId;
   readonly label: string;
-  readonly source: RenderSource;
+  readonly sources: readonly RenderSource[];
+}
+
+const ARTICLE_SOURCES: readonly RenderSource[] = Object.freeze(["web-link", "plain-text"]);
+
+function article(id: ArticleTheme, label: string): RenderStyleOption {
+  return Object.freeze({ id, label, sources: ARTICLE_SOURCES });
 }
 
 export const RENDER_STYLE_OPTIONS: readonly RenderStyleOption[] = Object.freeze([
-  Object.freeze({ id: "conversation-clean", label: "简洁对话", source: "chatgpt-share" }),
-  Object.freeze({ id: "text-card", label: "文字卡片", source: "plain-text" }),
+  Object.freeze({ id: "conversation-clean", label: "简洁对话", sources: Object.freeze<RenderSource[]>(["chatgpt-share"]) }),
+  article("article-clean", "简约白"),
+  article("article-apple", "苹果风"),
+  article("article-dark", "深色"),
+  article("article-magazine", "杂志风"),
+  article("article-social", "社交卡片"),
 ]);
+
+export function isArticleSource(source: RenderSource): boolean {
+  return source === "web-link" || source === "plain-text";
+}
